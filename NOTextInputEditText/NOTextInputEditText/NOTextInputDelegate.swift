@@ -1,0 +1,108 @@
+//
+//  NOTextInputDelegate.swift
+//  NOTextInputEditText
+//
+//  Created by Deo on 2020/7/7.
+//  Copyright © 2020 NeetOffice. All rights reserved.
+//
+
+import UIKit
+import SwiftUI
+
+class NOTextInputDelegate: NSObject, UITextFieldDelegate {
+    private let delegate:UITextFieldDelegate
+    private let title:String
+    private let text:Binding<String>
+    private let isFocusable:Binding<Bool>
+    private let onCommit:()->Void
+    var label:UILabel
+    
+    init(delegate:UITextFieldDelegate,
+         title:String,
+         text:Binding<String>,
+         isFocusable:Binding<Bool>,
+         onCommit:@escaping ()->Void){
+        self.delegate = delegate
+        self.title = title
+        self.text = text
+        self.isFocusable = isFocusable
+        self.onCommit = onCommit
+        label = UILabel(frame: CGRect(x: 0, y: 0, width:UIScreen.main.bounds.width/2, height: 44))
+    }
+    @available(iOS 2.0, *)
+    func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
+        return self.textFieldShouldBeginEditing(textField)
+    }
+    
+    @available(iOS 2.0, *)
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        DispatchQueue.main.async {
+            self.isFocusable.wrappedValue = true
+        }
+        self.delegate.textFieldDidBeginEditing?(textField)
+    }
+    
+    @available(iOS 2.0, *)
+    func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
+        return self.delegate.textFieldShouldBeginEditing?(textField) ?? true
+    }
+    
+    @available(iOS 2.0, *)
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        DispatchQueue.main.async {
+            self.isFocusable.wrappedValue = false
+        }
+    }
+    
+    @available(iOS 10.0, *)
+    func textFieldDidEndEditing(_ textField: UITextField, reason: UITextField.DidEndEditingReason) {
+        self.textFieldDidEndEditing(textField, reason: reason)
+    }
+    
+    @available(iOS 2.0, *)
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        if string == "\n", let _ = textField.text{
+            DispatchQueue.main.async {
+                self.isFocusable.wrappedValue = false
+                self.onCommit()
+            }
+            return false
+        }
+        DispatchQueue.main.async {
+            if textField.isSecureTextEntry {
+                self.label.text = self.title
+            }else{
+                let currentText = textField.text ?? ""
+                let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
+                self.label.text = newText
+            }
+        }
+        DispatchQueue.main.async {
+            self.text.wrappedValue = textField.text ?? ""
+            self.label.text = textField.text ?? ""
+        }
+        return self.delegate.textField?(textField, shouldChangeCharactersIn: range, replacementString: string) ?? false
+    }
+    
+    @available(iOS 13.0, *)
+    func textFieldDidChangeSelection(_ textField: UITextField) {
+        self.delegate.textFieldDidChangeSelection?(textField)
+    }
+    
+    @available(iOS 2.0, *)
+    func textFieldShouldClear(_ textField: UITextField) -> Bool {
+        return self.delegate.textFieldShouldClear?(textField) ?? false
+    }
+    
+    @available(iOS 2.0, *)
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        return self.delegate.textFieldShouldReturn?(textField) ?? true
+    }
+    
+    @objc func doneButtonTapped(button:UIBarButtonItem) -> Void {
+        DispatchQueue.main.async {
+            self.isFocusable.wrappedValue = false
+            self.onCommit()
+        }
+    }
+}
