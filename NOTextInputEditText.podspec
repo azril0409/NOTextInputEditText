@@ -25,7 +25,8 @@ Pod::Spec.new do |spec|
   #   * Write the description between the DESC delimiters below.
   #   * Finally, don't worry about the indent, CocoaPods strips it!
   spec.description  = <<-DESC
-                   DESC
+  NOTextInputEditText is an ios framework for Android Material Design TextInputEditText styled SwiftUI TextField.
+  DESC
 
   spec.homepage     = "https://github.com/azril0409/NOTextInputEditText.git"
   # spec.screenshots  = "www.example.com/screenshots_1.gif", "www.example.com/screenshots_2.gif"
@@ -90,10 +91,10 @@ Pod::Spec.new do |spec|
   #  Not including the public_header_files will make all headers public.
   #
 
-  spec.source_files  = "NOTextInputEditText", "NOTextInputEditText/**/*.{h,m,swift}"
+  spec.source_files  = "NOTextInputEditText", "NOTextInputEditText/NOTextInputEditText/*.{h,m,swift}"
   #spec.exclude_files = "Classes/Exclude"
 
-  spec.public_header_files = "NOTextInputEditText/**/*.h"
+  spec.public_header_files = "NOTextInputEditText/NOTextInputEditText/*.h"
 
 
   # ――― Resources ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #

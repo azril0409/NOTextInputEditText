@@ -8,8 +8,5 @@
 
 import UIKit
 
-class DefaultTextFieldDelegate:NSObject,UITextFieldDelegate{
-    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        false
-    }
+public class DefaultTextFieldDelegate:NSObject,UITextFieldDelegate{
 }

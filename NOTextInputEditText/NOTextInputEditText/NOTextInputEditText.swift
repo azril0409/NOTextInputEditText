@@ -2,34 +2,62 @@
 //  NOTextInputEditText.swift
 //  NOTextInputEditText
 //
-//  Created by Deo on 2020/7/7.
+//  Created by Deo on 2020/7/8.
 //  Copyright © 2020 NeetOffice. All rights reserved.
 //
 
 import SwiftUI
 
-struct NOTextInputEditText:View{
-    let title:String
+public struct NOTextInputEditText:View{
+    private let title:String
     @Binding
-    var text:String
+    private var text:String
     @Binding
-    var error:String
+    private var error:String
     @Binding
-    var isFocusable:Bool
-    var delegate:UITextFieldDelegate = DefaultTextFieldDelegate()
-    var keyboardType:UIKeyboardType = UIKeyboardType.default
-    var isSecureTextEntry:Bool = false
-    var titleColor = Color.black
-    var textColor = Color.black
-    var hintColor:Color = Color.init(red: 214.0/255, green: 214.0/255, blue: 214.0/255)
-    var errorColor:Color = Color.red
-    let textSize = UIFontMetrics.default.scaledFont(for: .preferredFont(forTextStyle: .body)).pointSize
-    var onCommit:()->Void = {}
+    private var isFocusable:Bool
+    private let delegate:UITextFieldDelegate
+    private let keyboardType:UIKeyboardType
+    private let isSecureTextEntry:Bool
+    private let primaryColor:UIColor
+    private let titleColor:UIColor
+    private let textColor:UIColor
+    private let errorColor:UIColor
+    private let textSize:CGFloat
+    private let onCommit:()->Void
     
-    var body: some View{
+    public init(title:String,
+                text:Binding<String>,
+                error:Binding<String>,
+                isFocusable:Binding<Bool>,
+                delegate:UITextFieldDelegate = DefaultTextFieldDelegate(),
+                keyboardType:UIKeyboardType = UIKeyboardType.default,
+                isSecureTextEntry:Bool = false,
+                primaryColor:UIColor = UIColor.red,
+                titleColor:UIColor = UIColor.black,
+                textColor:UIColor = UIColor.black,
+                errorColor:UIColor = UIColor.red,
+                textSize:CGFloat = UIFontMetrics.default.scaledFont(for: .preferredFont(forTextStyle: .body)).pointSize,
+                onCommit:@escaping ()->Void = {}){
+        self.title = title
+        self._text = text
+        self._error = error
+        self._isFocusable = isFocusable
+        self.delegate = delegate
+        self.keyboardType = keyboardType
+        self.isSecureTextEntry = isSecureTextEntry
+        self.primaryColor = primaryColor
+        self.titleColor = titleColor
+        self.textColor = textColor
+        self.errorColor = errorColor
+        self.textSize = textSize
+        self.onCommit = onCommit
+    }
+    
+    public var body: some View{
         VStack{
             HStack {
-                Text(NSLocalizedString(self.title, comment: self.title)).font(.system(size: self.textSize)).foregroundColor(self.titleColor).lineLimit(1).minimumScaleFactor(0.1)
+                Text(NSLocalizedString(self.title, comment: self.title)).font(.system(size: self.textSize)).foregroundColor(self.isFocusable ? Color(self.primaryColor):Color(self.titleColor)).lineLimit(1).minimumScaleFactor(0.1)
                 Spacer()
                 
             }.frame(height: self.textSize)
@@ -44,14 +72,25 @@ struct NOTextInputEditText:View{
                                  textColor: self.textColor,
                                  textSize: self.textSize,
                                  onCommit: self.onCommit).frame(height: self.textSize).frame(maxWidth: UIScreen.main.bounds.width)
-            Divider()
+            Divider().background(self.isFocusable ? Color(self.primaryColor):Color(self.textColor))
             HStack{
                 if !self.error.isEmpty{
-                    Image(systemName: "multiply.circle").resizable().scaledToFit().foregroundColor(errorColor)
-                    Text(NSLocalizedString(self.error, comment: self.error)).font(.system(size: self.textSize)).foregroundColor(self.errorColor).lineLimit(1).minimumScaleFactor(0.1)
+                    Text(NSLocalizedString(self.error, comment: self.error)).font(.system(size: self.textSize)).foregroundColor(Color(self.errorColor)).lineLimit(1).minimumScaleFactor(0.1)
                 }
                 Spacer()
             }.frame(height: self.textSize)
         }
     }
 }
+
+#if DEBUG
+struct NOTextInputEditText_Previews: PreviewProvider {
+    static var previews: some View {
+        NOTextInputEditText(title: "帳號",
+                            text: Binding<String>(get: {""}, set: {_ in}),
+                            error: Binding<String>(get: {""}, set: {_ in}),
+                            isFocusable: Binding<Bool>(get: {false}, set: {_ in})) {
+        }
+    }
+}
+#endif

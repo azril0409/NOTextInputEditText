@@ -8,22 +8,42 @@
 
 import SwiftUI
 
-struct NOTextInputTextField:UIViewRepresentable {
-    typealias UIViewType = UITextField
-    typealias Coordinator = NOTextInputDelegate
-    var title:String = ""
+public struct NOTextInputTextField:UIViewRepresentable {
+    public typealias UIViewType = UITextField
+    public typealias Coordinator = NOTextInputDelegate
+    private let title:String
     @Binding
-    var text:String
+    private var text:String
     @Binding
-    var isFocusable:Bool
-    var delegate:UITextFieldDelegate = DefaultTextFieldDelegate()
-    var keyboardType:UIKeyboardType = UIKeyboardType.default
-    var isSecureTextEntry:Bool = false
-    var textColor:Color = Color.black
-    var textSize:CGFloat = UIFontMetrics.default.scaledFont(for: .preferredFont(forTextStyle: .body)).pointSize
-    var onCommit:()->Void = {}
+    private var isFocusable:Bool
+    private let delegate:UITextFieldDelegate
+    private var keyboardType:UIKeyboardType
+    private var isSecureTextEntry:Bool
+    private var textColor:UIColor
+    private var textSize:CGFloat
+    private let onCommit:()->Void
     
-    func makeUIView(context: Context) -> UITextField {
+    public init(title:String = "",
+                text:Binding<String>,
+                isFocusable:Binding<Bool>,
+                delegate:UITextFieldDelegate = DefaultTextFieldDelegate(),
+                keyboardType:UIKeyboardType = UIKeyboardType.default,
+                isSecureTextEntry:Bool = false,
+                textColor:UIColor = UIColor.black,
+                textSize:CGFloat = UIFontMetrics.default.scaledFont(for: .preferredFont(forTextStyle: .body)).pointSize,
+                onCommit:@escaping ()->Void = {}){
+        self.title = title
+        self._text = text
+        self._isFocusable = isFocusable
+        self.delegate = delegate
+        self.keyboardType = keyboardType
+        self.isSecureTextEntry = isSecureTextEntry
+        self.textColor = textColor
+        self.textSize = textSize
+        self.onCommit = onCommit
+    }
+    
+    public func makeUIView(context: Context) -> UITextField {
         let textField = UITextField()
         let delegate = context.coordinator
         textField.delegate = delegate
@@ -38,7 +58,7 @@ struct NOTextInputTextField:UIViewRepresentable {
         return textField
     }
     
-    func makeCoordinator() -> NOTextInputDelegate {
+    public func makeCoordinator() -> NOTextInputDelegate {
         return NOTextInputDelegate(delegate: self.delegate,
                                    title: self.title,
                                    text: self.$text,
@@ -46,11 +66,11 @@ struct NOTextInputTextField:UIViewRepresentable {
                                    onCommit: onCommit)
     }
     
-    func updateUIView(_ uiView: UITextField, context: Context) {
+    public func updateUIView(_ uiView: UITextField, context: Context) {
         uiView.keyboardType = self.keyboardType
         uiView.isSecureTextEntry = self.isSecureTextEntry
         uiView.font = .systemFont(ofSize: self.textSize)
-        uiView.textColor = self.toUIColor(color: self.textColor)
+        uiView.textColor = self.textColor
         DispatchQueue.main.async {
             do{
                 _ = try self.isFocusable ? uiView.becomeFirstResponder() : uiView.resignFirstResponder()
@@ -63,19 +83,5 @@ struct NOTextInputTextField:UIViewRepresentable {
                 }
             }catch{}
         }
-    }
-
-    private func toUIColor(color:Color) -> UIColor {
-        let scanner = Scanner(string: color.description.trimmingCharacters(in: CharacterSet.alphanumerics.inverted))
-        var hexNumber: UInt64 = 0
-        var r: CGFloat = 0.0, g: CGFloat = 0.0, b: CGFloat = 0.0, a: CGFloat = 0.0
-        let result = scanner.scanHexInt64(&hexNumber)
-        if result {
-            r = CGFloat((hexNumber & 0xff000000) >> 24) / 255
-            g = CGFloat((hexNumber & 0x00ff0000) >> 16) / 255
-            b = CGFloat((hexNumber & 0x0000ff00) >> 8) / 255
-            a = CGFloat(hexNumber & 0x000000ff) / 255
-        }
-        return UIColor(red: r, green: g, blue: b, alpha: a)
     }
 }

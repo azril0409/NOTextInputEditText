@@ -9,7 +9,7 @@
 import UIKit
 import SwiftUI
 
-class NOTextInputDelegate: NSObject, UITextFieldDelegate {
+public class NOTextInputDelegate: NSObject, UITextFieldDelegate {
     private let delegate:UITextFieldDelegate
     private let title:String
     private let text:Binding<String>
@@ -17,7 +17,7 @@ class NOTextInputDelegate: NSObject, UITextFieldDelegate {
     private let onCommit:()->Void
     var label:UILabel
     
-    init(delegate:UITextFieldDelegate,
+    public init(delegate:UITextFieldDelegate,
          title:String,
          text:Binding<String>,
          isFocusable:Binding<Bool>,
@@ -30,12 +30,12 @@ class NOTextInputDelegate: NSObject, UITextFieldDelegate {
         label = UILabel(frame: CGRect(x: 0, y: 0, width:UIScreen.main.bounds.width/2, height: 44))
     }
     @available(iOS 2.0, *)
-    func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
-        return self.textFieldShouldBeginEditing(textField)
+    public func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
+        return self.delegate.textFieldShouldBeginEditing?(textField) ?? true
     }
     
     @available(iOS 2.0, *)
-    func textFieldDidBeginEditing(_ textField: UITextField) {
+    public func textFieldDidBeginEditing(_ textField: UITextField) {
         DispatchQueue.main.async {
             self.isFocusable.wrappedValue = true
         }
@@ -43,24 +43,25 @@ class NOTextInputDelegate: NSObject, UITextFieldDelegate {
     }
     
     @available(iOS 2.0, *)
-    func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
+    public func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
+        DispatchQueue.main.async {
+            self.isFocusable.wrappedValue = false
+        }
         return self.delegate.textFieldShouldBeginEditing?(textField) ?? true
     }
     
     @available(iOS 2.0, *)
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        DispatchQueue.main.async {
-            self.isFocusable.wrappedValue = false
-        }
+    public func textFieldDidEndEditing(_ textField: UITextField) {
+        self.delegate.textFieldDidEndEditing?(textField)
     }
     
     @available(iOS 10.0, *)
-    func textFieldDidEndEditing(_ textField: UITextField, reason: UITextField.DidEndEditingReason) {
-        self.textFieldDidEndEditing(textField, reason: reason)
+    public func textFieldDidEndEditing(_ textField: UITextField, reason: UITextField.DidEndEditingReason) {
+        self.delegate.textFieldDidEndEditing?(textField, reason: reason)
     }
     
     @available(iOS 2.0, *)
-    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+    public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         if string == "\n", let _ = textField.text{
             DispatchQueue.main.async {
                 self.isFocusable.wrappedValue = false
@@ -68,34 +69,31 @@ class NOTextInputDelegate: NSObject, UITextFieldDelegate {
             }
             return false
         }
+        let currentText = textField.text ?? ""
+        let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
         DispatchQueue.main.async {
+            self.text.wrappedValue = newText
             if textField.isSecureTextEntry {
                 self.label.text = self.title
             }else{
-                let currentText = textField.text ?? ""
-                let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
                 self.label.text = newText
             }
-        }
-        DispatchQueue.main.async {
-            self.text.wrappedValue = textField.text ?? ""
-            self.label.text = textField.text ?? ""
         }
         return self.delegate.textField?(textField, shouldChangeCharactersIn: range, replacementString: string) ?? false
     }
     
     @available(iOS 13.0, *)
-    func textFieldDidChangeSelection(_ textField: UITextField) {
+    public func textFieldDidChangeSelection(_ textField: UITextField) {
         self.delegate.textFieldDidChangeSelection?(textField)
     }
     
     @available(iOS 2.0, *)
-    func textFieldShouldClear(_ textField: UITextField) -> Bool {
+    public func textFieldShouldClear(_ textField: UITextField) -> Bool {
         return self.delegate.textFieldShouldClear?(textField) ?? false
     }
     
     @available(iOS 2.0, *)
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+    public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         return self.delegate.textFieldShouldReturn?(textField) ?? true
     }
     
